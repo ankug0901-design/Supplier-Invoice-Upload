@@ -98,6 +98,14 @@
     const form = document.getElementById('invoiceForm');
     const responseDiv = document.getElementById('response');
 
+    function showMessage(type, text) {
+      responseDiv.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = type;
+      div.textContent = text; // use textContent to avoid XSS
+      responseDiv.appendChild(div);
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -110,16 +118,47 @@
           body: formData
         });
 
-        const data = await res.json();
+        // If the response status is not 2xx, try to read text and show error
+        if (!res.ok) {
+          let errText = '';
+          try {
+            errText = await res.text();
+            errText = errText || `Upload failed with status ${res.status}`;
+          } catch (e) {
+            errText = `Upload failed with status ${res.status}`;
+          }
+          showMessage('error', errText);
+          return;
+        }
 
-        if (data.success) {
-          responseDiv.innerHTML = `<div class="success">Invoice uploaded successfully. Bill No: ${data.bill_number}</div>`;
+        // Only attempt to parse JSON if server returned JSON
+        const contentType = res.headers.get('content-type') || '';
+        let data;
+        if (contentType.includes('application/json')) {
+          try {
+            data = await res.json();
+          } catch (parseErr) {
+            showMessage('error', 'Invalid JSON response from server.');
+            return;
+          }
+        } else {
+          // Non-JSON successful response
+          const text = await res.text();
+          showMessage('error', text || 'Unexpected server response.');
+          return;
+        }
+
+        if (data && data.success) {
+          // Safely show returned bill number
+          const billNo = data.bill_number ? String(data.bill_number) : '';
+          showMessage('success', `Invoice uploaded successfully. Bill No: ${billNo}`);
           form.reset();
         } else {
-          responseDiv.innerHTML = `<div class="error">${data.message || 'Upload failed'}</div>`;
+          showMessage('error', data && data.message ? data.message : 'Upload failed');
         }
       } catch (error) {
-        responseDiv.innerHTML = '<div class="error">Server error. Please try again later.</div>';
+        console.error('Upload error:', error);
+        showMessage('error', 'Server error. Please try again later.');
       }
     });
   </script>
