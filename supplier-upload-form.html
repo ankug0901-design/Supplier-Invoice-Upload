@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Bill Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 15px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+        
+        .file-input-label:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .file-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Upload Supplier Bill</h1>
+        <p class="subtitle">Submit your invoice against an existing Purchase Order</p>
+        
+        <form id="billForm">
+            <div class="form-group">
+                <label for="po_number">Purchase Order Number <span class="required">*</span></label>
+                <input type="text" id="po_number" name="po_number" placeholder="e.g., PO-00001" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="bill_number">Your Invoice Number <span class="required">*</span></label>
+                <input type="text" id="bill_number" name="bill_number" placeholder="e.g., INV-2024-001" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="bill_date">Invoice Date <span class="required">*</span></label>
+                <input type="date" id="bill_date" name="bill_date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="bill_file">Upload Invoice PDF <span class="required">*</span></label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="bill_file" name="bill_file" accept=".pdf" required>
+                    <label for="bill_file" class="file-input-label">
+                        <span class="file-icon">📎</span>
+                        <span id="file-label-text">Choose PDF file</span>
+                    </label>
+                </div>
+                <div class="file-name" id="file-name"></div>
+            </div>
+            
+            <button type="submit" id="submitBtn">Submit Invoice</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Uploading invoice...</p>
+        </div>
+        
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        // Update this URL with your actual N8N webhook URL
+        const WEBHOOK_URL = 'https://n8n.srv1141999.hstgr.cloud/webhook/supplier-bill-upload-v2';
+        
+        const form = document.getElementById('billForm');
+        const fileInput = document.getElementById('bill_file');
+        const fileName = document.getElementById('file-name');
+        const fileLabelText = document.getElementById('file-label-text');
+        const message = document.getElementById('message');
+        const loading = document.getElementById('loading');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Set today's date as default
+        document.getElementById('bill_date').valueAsDate = new Date();
+        
+        // File input change handler
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileName.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                fileLabelText.textContent = 'Change file';
+            }
+        });
+        
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            message.style.display = 'none';
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('po_number', document.getElementById('po_number').value);
+                formData.append('bill_number', document.getElementById('bill_number').value);
+                formData.append('bill_date', document.getElementById('bill_date').value);
+                formData.append('bill_file', fileInput.files[0]);
+                
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                loading.style.display = 'none';
+                message.style.display = 'block';
+                
+                if (result.success) {
+                    message.className = 'message success';
+                    message.innerHTML = `
+                        <strong>✓ Success!</strong><br>
+                        Your invoice has been uploaded successfully.<br>
+                        <small>Bill ID: ${result.bill_id || 'N/A'}</small>
+                    `;
+                    form.reset();
+                    fileName.textContent = '';
+                    fileLabelText.textContent = 'Choose PDF file';
+                    document.getElementById('bill_date').valueAsDate = new Date();
+                } else {
+                    message.className = 'message error';
+                    message.innerHTML = `
+                        <strong>✗ Error</strong><br>
+                        ${result.message || 'Failed to upload invoice. Please try again.'}
+                    `;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                message.style.display = 'block';
+                message.className = 'message error';
+                message.innerHTML = `
+                    <strong>✗ Error</strong><br>
+                    Network error. Please check your connection and try again.
+                `;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
